@@ -1,101 +1,31 @@
-# GameNetworkingSockets [![Build Status](https://travis-ci.org/ValveSoftware/GameNetworkingSockets.svg?branch=master)](https://travis-ci.org/ValveSoftware/GameNetworkingSockets)
+# GameNetworkingSockets vs2017 project build by CMake-3.19.0
+Origin:[GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets)
 
-GameNetworkingSockets is a basic transport layer for games.  The features are:
+You may read the GameNetworkingSockets origin page first. 
+你应该先阅读GameNetworkingSockets源码页面上的相关说明
 
-* Connection-oriented API (like TCP)
-* ... but message-oriented (like UDP), not stream-oriented.
-* Supports both reliable and unreliable message types
-* Messages can be larger than underlying MTU.  The protocol performs
-  fragmentation, reassembly, and retransmission for reliable messages.
-* A [reliability layer](src/steamnetworkingsockets/clientlib/SNP_WIRE_FORMAT.md)
-  significantly more sophisticated than a basic TCP-style sliding window.
-  It is based on the "ack vector" model from DCCP (RFC 4340, section 11.4)
-  and Google QUIC and discussed in the context of games by
-  [Glenn Fiedler](https://gafferongames.com/post/reliable_ordered_messages/).
-  The basic idea is for the receiver to efficiently communicate to the sender
-  the status of every packet number (whether or not a packet was received
-  with that number).  By remembering which segments were sent in each packet,
-  the sender can deduce which segments need to be retransmitted.
-* Encryption. AES-GCM-256 per packet, [Curve25519](https://cr.yp.to/ecdh.html) for
-  key exchange and cert signatures. The details for shared key derivation and
-  per-packet IV are based on the [design](https://docs.google.com/document/d/1g5nIXAIkN_Y-7XJW5K45IblHd_L2f5LTaDUDwvZ5L6g/edit?usp=sharing)
-  used by Google's QUIC protocol.
-* Tools for simulating packet latency/loss, and detailed stats measurement
-* IPv6 support
-* Peer-to-peer networking:
-  * NAT traversal through google WebRTC's ICE implementation.
-  * Plug in your own signaling service.
-  * Unique "symmetric connect" mode.
-  * See [README_P2P.md](README_P2P.md) for more info
+Here just provides VS2017 project files generated according to GameNetworkingSockets source code.
+这里仅提供了一个根据GameNetworkingSockets源码生成出来的vs2017工程文件
 
-What it does *not* do:
+## Dependencies
+* OpenSSL 1.1.1 or later
+* Google protobuf 2.6.1+  ([protobuf-3.5.x release](https://github.com/sitonmoon/protobuf-3.5.x-Release))
+这里提供的链接是根据protobuf3.5.x源码编译出来的库文件，可以直接下载使用<br>
+* Google [webrtc](https://opensource.google/projects/webrtc) is used for
+  NAT piercing (ICE) for P2P connections.  The relevant code is linked in as a
+  git submodule.  You'll need to initialize that submodule to compile.<br>
+  webRTC这个子模块我这里没有添加成功，不过不需要webRTC也可以编译GameNetworkingSockets工程，就是可能会没有P2P连接功能<br>
+  
+## VS solution file
+'/build/GameNetworkingSockets.sln'
+直接打开VS2017解决方案，然后生成“ALL BUILD”项目即可生成GameNetworkingSockets网络库的相关dll文件
 
-* Higher level serialization of entities, delta encoding of changed state
-  variables, etc
-* Compression
+## Demo
+解决方案中有个用于测试的Demo聊天室项目"example_chat",生成该项目后会在输出目录输出一个"example_chat.exe"可执行程序<br>
+![](https://github.com/sitonmoon/GameNetworkingSockets-VS2017/blob/main/demo1.png)<br>
 
-## Quick API overview
-
-To get an idea of what the API is like, here are a few things to check out:
-
-* The [include/steam](include/steam) folder has the public API headers.
-  * [``ISteamNetworkingSockets``](include/steam/isteamnetworkingsockets.h) is the
-    most important interface.
-  * [``steamnetworkingtypes.h``](include/steam/steamnetworkingtypes.h) has misc
-    types and declarations.
-* The
-  [Steamworks SDK documentation](https://partner.steamgames.com/doc/api/ISteamNetworkingSockets)
-  offers web-based documentation for these APIs.  Note that some features
-  are only available on Steam, such as Steam's authentication service,
-  signaling service, and the SDR relay service.
-* Look at these examples:
-  * [example_chat.cpp](examples/example_chat.cpp).  Very simple client/server
-    program using all reliable messages over ordinary IPv4.
-  * [test_p2p.cpp](tests/test_p2p.cpp).  Shows how to get two hosts to connect
-    to each other using P2P connectivity.  Also an example of how to write a
-    signaling service plugin.
-
-## Building
-
-See [BUILDING](BUILDING.md) for more information.
-
-## Language bindings
-
-The library was written in C++, but there is also a plain C interface
-to facilitate binding to other languages.
-
-Third party language bindings:
-
-* C#:
-  * <https://github.com/nxrighthere/ValveSockets-CSharp>
-  * <https://github.com/Facepunch/Facepunch.Steamworks>
-* Go:
-  * <https://github.com/nielsAD/gns/>
-
-## Why do I see "Steam" everywhere?
-
-The main interface class is named SteamNetworkingSockets, and many files have
-"steam" in their name.  But *Steam is not needed*.  If you don't make games or
-aren't on Steam, feel free to use this code for whatever purpose you want.
-
-The reason for "Steam" in the names is that this provides a subset of the
-functionality of the [API](https://partner.steamgames.com/doc/api/ISteamNetworkingSockets)
-with the same name in the Steamworks SDK.  Our main
-reason for releasing this code is so that developers won't have any hesitation
-coding to the API in the Steamworks SDK.  On Steam, you will link against the
-Steamworks version, and you can get the additional features there (access to
-the relay network).  And on other platforms, you can use this version, which
-has the same names for everything, the same semantics, the same behavioural
-quirks.  We want you to take maximum advantage of the features in the
-Steamworks version, and that won't happen if the Steam code is a weird "wart"
-that's hidden behind `#ifdef STEAM`.
-
-The desire to match the Steamworks SDK also explains a somewhat anachronistic
-coding style and weird directory layout.  This project is kept in sync with the
-Steam code here at Valve.  When we extracted the code from the much larger
-codebase, we had to do some relatively gross hackery.  The files in folders
-named  `tier0`, `tier1`, `vstdlib`, `common`, etc have especially suffered
-trauma.  Also if you see code that appears to have unnecessary layers of
-abstraction, it's probably because those layers are needed to support relayed
-connection types or some part of the Steamworks SDK.
-
+用法就是创建快捷方式，在后面加参数：<br>
+ server 表示启动服务器<br>
+ client 127.0.0.1 表示启动客户端 并使用默认端口连接本地服务器<br>
+ 启动两个客户端就可以互相聊天了。<br>
+ ![](https://github.com/sitonmoon/GameNetworkingSockets-VS2017/blob/main/demo2.png)<br>
