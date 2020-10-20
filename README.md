@@ -21,7 +21,7 @@ Here just provides VS2017 project files generated according to GameNetworkingSoc
 直接打开VS2017解决方案，然后生成“ALL BUILD”项目即可生成GameNetworkingSockets网络库的相关dll文件
 
 ## Demo
-解决方案中有个用于测试的Demo聊天室项目"example_chat",生成该项目后会在输出目录输出一个"example_chat.exe"可执行程序<br>
+解决方案中有个用于测试的Demo聊天室项目"example_chat",生成该项目后会在'\GameNetworkingSockets\build\bin\Debug'目录输出一个"example_chat.exe"可执行程序<br>
 ![](https://github.com/sitonmoon/GameNetworkingSockets-VS2017/blob/main/demo1.png)<br>
 
 用法就是创建快捷方式，在后面加参数：<br>
